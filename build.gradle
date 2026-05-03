@@ -1,0 +1,141 @@
+plugins {
+    id 'fabric-loom' version '1.6-SNAPSHOT'
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    // Add repositories for dependencies
+    mavenCentral()
+    maven {
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net/'
+    }
+    maven {
+        name = 'ViaVersion'
+        url = 'https://repo.viaversion.com'
+    }
+    maven {
+        name = 'Jitpack'
+        url = 'https://jitpack.io'
+    }
+}
+
+loom {
+    // Configure Loom settings
+    runs {
+        client {
+            client()
+            ideConfigGenerated project.rootProject == project
+            name "Minecraft Client"
+            programArgs "--username", "DevUser"
+        }
+        server {
+            server()
+            ideConfigGenerated project.rootProject == project
+            name "Minecraft Server"
+        }
+    }
+}
+
+dependencies {
+    // Minecraft
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    
+    // Mappings
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    
+    // Fabric Loader
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    
+    // Fabric API
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    
+    // ViaVersion dependencies (local JARs)
+    // Make sure to place these JARs in a 'libs' directory in the project root
+    implementation files('libs/ViaVersion.jar')
+    implementation files('libs/ViaBackwards.jar')
+    implementation files('libs/ViaRewind.jar')
+    
+    // Optional: ViaFabric for integration
+    modImplementation "com.viaversion:viafabric:${project.viafabric_version}"
+    
+    // Additional dependencies
+    include(implementation('org.yaml:snakeyaml:2.2'))
+    include(implementation('com.google.code.gson:gson:2.10.1'))
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+    it.options.encoding = 'UTF-8'
+}
+
+java {
+    withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}
+
+// Configure publishing
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        // Add repositories to publish to here
+    }
+}
+
+// Task to download ViaVersion JARs (optional helper)
+task downloadViaVersionJars {
+    doLast {
+        def libsDir = file('libs')
+        if (!libsDir.exists()) {
+            libsDir.mkdirs()
+        }
+        
+        // Download ViaVersion
+        ant.get(src: 'https://github.com/ViaVersion/ViaVersion/releases/download/4.9.4/ViaVersion-4.9.4.jar', 
+                dest: 'libs/ViaVersion.jar')
+        
+        // Download ViaBackwards
+        ant.get(src: 'https://github.com/ViaVersion/ViaBackwards/releases/download/4.9.3/ViaBackwards-4.9.3.jar', 
+                dest: 'libs/ViaBackwards.jar')
+        
+        // Download ViaRewind
+        ant.get(src: 'https://github.com/ViaVersion/ViaRewind/releases/download/3.0.4/ViaRewind-3.0.4.jar', 
+                dest: 'libs/ViaRewind.jar')
+        
+        println "ViaVersion JARs downloaded to libs/ directory"
+    }
+}
+
+// Gradle wrapper task
+wrapper {
+    gradleVersion = '8.5'
+    distributionType = Wrapper.DistributionType.BIN
+}

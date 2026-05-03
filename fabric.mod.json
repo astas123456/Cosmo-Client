@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "cosmoclient",
+  "version": "${version}",
+  "name": "CosmoClient",
+  "description": "A Minecraft Fabric client modification",
+  "authors": [
+    "CosmoClient Team"
+  ],
+  "contact": {
+    "homepage": "https://github.com/CosmoClient/CosmoClient",
+    "sources": "https://github.com/CosmoClient/CosmoClient"
+  },
+  "license": "MIT",
+  "icon": "assets/cosmoclient/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "com.cosmoclient.CosmoClient"
+    ],
+    "client": [
+      "com.cosmoclient.CosmoClient"
+    ]
+  },
+  "mixins": [
+    "cosmoclient.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21",
+    "java": ">=21"
+  },
+  "suggests": {
+    "viafabric": "*"
+  }
+}
